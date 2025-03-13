@@ -2,13 +2,18 @@ FROM prom/prometheus
 # copy config template and startup script
 COPY prometheus.yml /etc/prometheus/prometheus.template.yml
 COPY start.sh /start.sh
-RUN chmod +x /start.sh
-# Install envsubst utility from gettext package
-RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/*
+
+# Install envsubst utility from gettext package and set permissions
+USER root
+RUN apt-get update && apt-get install -y gettext-base && rm -rf /var/lib/apt/lists/* && \
+    chmod +x /start.sh
+
 # expose port
 EXPOSE 9090
-# set entrypoint
-USER root
+
+# Switch back to prometheus user for better security
+USER prometheus
+
 ENTRYPOINT ["/start.sh"]
 CMD ["--config.file=/etc/prometheus/prometheus.yml", \
      "--storage.tsdb.path=/prometheus", \
