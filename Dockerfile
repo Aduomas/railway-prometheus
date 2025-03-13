@@ -1,19 +1,12 @@
 FROM prom/prometheus
 
-# Copy config template and startup script
-COPY prometheus.yml /etc/prometheus/prometheus.template.yml
-COPY start.sh /bin/start.sh
-
-# Create a simpler start script that doesn't rely on envsubst
-RUN echo '#!/bin/sh' > /bin/start.sh && \
-    echo 'sed -e "s|\${FASTAPI_URL}|$FASTAPI_URL|g" /etc/prometheus/prometheus.template.yml > /etc/prometheus/prometheus.yml' >> /bin/start.sh && \
-    echo 'exec /bin/prometheus "$@"' >> /bin/start.sh && \
-    chmod +x /bin/start.sh
+# Copy our custom prometheus.yml directly
+COPY prometheus.yml /etc/prometheus/prometheus.yml
 
 # Expose port
 EXPOSE 9090
 
-ENTRYPOINT ["/bin/start.sh"]
+# Just use the default entrypoint and specify the config file
 CMD ["--config.file=/etc/prometheus/prometheus.yml", \
      "--storage.tsdb.path=/prometheus", \
      "--storage.tsdb.retention.time=365d", \
